@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_app/Screens/home_page.dart';
 import 'package:flutter_app/Screens/login_page.dart';
 import 'package:flutter_app/services/geolocator_service.dart';
 import 'package:flutter_app/services/places_service.dart';
@@ -22,7 +23,7 @@ class MyApp extends StatelessWidget {
         FutureProvider(create: (context) => locatorService.getLocation()),
         ProxyProvider<Position,Future<List<Place>>>(
           update: (context,position,places){
-            return (position != null) ? placesService.getPlaces(position.latitude, position.longitude) : null;
+            return (position != null) ? placesService.getPlaces(41.9453233, -78.6711067) : null;
           },
         )
       ],

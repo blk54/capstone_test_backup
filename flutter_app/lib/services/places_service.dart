@@ -6,9 +6,9 @@ class PlacesService {
   final key = 'AIzaSyAUdkcL2aVa19xwNol4oGP4sgIIrUjKPbo';
 
   Future<List<Place>> getPlaces(double lat, double lng) async {
-    var response = await http.get('https://maps.googleapis.com/maps/api/place/nerbyserch/json?location=$lat,$lng}&type=food&rankby=distance&key=$key');
-    var json = convert.jsonDecode(response.body);
-    var jsonResults = json['results'] as List;
-    return jsonResults.map((place) => Place.fromJson(place)).toList();
+      var response = await http.get('https://maps.googleapis.com/maps/api/place/nearbysearch/json?location='+lat.toString()+','+lng.toString()+'&rankby=distance&type=restaurant&key=$key');
+      var json = convert.jsonDecode(response.body);
+      var jsonResults = json['results'] as List;
+      return jsonResults.map((place) => Place.fromJson(place)).toList();
   }
 }
