@@ -11,7 +11,7 @@ class LoginPage extends StatefulWidget {
 class _LoginPageState extends State<LoginPage> {
   @override
   Widget build(BuildContext context) {
-    ScreenUtil.init(context, designSize: Size(500, 1334), allowFontScaling: true);
+    ScreenUtil.init(context, designSize: Size(650, 1334), allowFontScaling: true);
     return Scaffold(
       body: Container(
         padding: EdgeInsets.only(

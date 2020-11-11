@@ -5,7 +5,6 @@ import 'package:flutter_app/services/geolocator_service.dart';
 import 'package:flutter_app/services/places_service.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:provider/provider.dart';
-
 import 'models/place.dart';
 
 void main() {
@@ -23,7 +22,7 @@ class MyApp extends StatelessWidget {
         FutureProvider(create: (context) => locatorService.getLocation()),
         ProxyProvider<Position,Future<List<Place>>>(
           update: (context,position,places){
-            return (position != null) ? placesService.getPlaces(41.9453233, -78.6711067) : null;
+            return (position != null) ? placesService.getPlaces(position.latitude, position.longitude) : null;
           },
         )
       ],

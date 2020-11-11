@@ -1,7 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_app/Screens/profile_page.dart';
 import 'package:flutter_app/models/location.dart';
+import 'package:flutter_app/services/geolocator_service.dart';
+import 'package:flutter_app/services/marker_service.dart';
 import 'package:flutter_app/services/places_service.dart';
+import 'package:flutter_rating_bar/flutter_rating_bar.dart';
+import 'package:url_launcher/url_launcher.dart';
 import '../models/place.dart';
 import 'package:flutter_app/Screens/sign_in.dart';
 import 'package:flutter_app/Screens/settings_page.dart';
@@ -20,7 +24,8 @@ class _HomePageState extends State<HomePage> {
   Widget build(BuildContext context) {
     final currentPosition = Provider.of<Position>(context);
     final placesProvider = Provider.of<Future<List<Place>>>(context);
-    //final placesProvider = PlacesService().getPlaces(currentPosition.latitude, currentPosition.longitude);
+    final geoService = GeoLocatorService();
+    final markerService = MarkerService();
 
     return FutureProvider(
       create: (context) => placesProvider,
@@ -110,16 +115,18 @@ class _HomePageState extends State<HomePage> {
         body: (currentPosition != null)
             ? Consumer<List<Place>>(
           builder: (_, places, __) {
+            var markers = (places != null) ? markerService.getMarkers(places) : List<Marker>();
             return (places != null) ? Column(
               children: <Widget>[
                 Container(
-                  height: MediaQuery.of(context).size.height / 3,
+                  height: MediaQuery.of(context).size.height / 5,
                   width: MediaQuery.of(context).size.width,
                   child: GoogleMap(
                     initialCameraPosition: CameraPosition(
                         target: LatLng(currentPosition.latitude, currentPosition.longitude),
                         zoom: 16.0),
                     zoomGesturesEnabled: true,
+                    markers: Set<Marker>.of(markers),
                   ),
                 ),
                 SizedBox(
@@ -129,9 +136,45 @@ class _HomePageState extends State<HomePage> {
                   child: ListView.builder(
                       itemCount: 20,
                       itemBuilder: (context, index) {
-                        return Card(
-                          child: ListTile(
-                            title: Text(places[index].name),
+                        return FutureProvider(
+                          create: (context) => geoService.getDistance(
+                              currentPosition.latitude, currentPosition.longitude,
+                              places[index].geometry.location.lat, places[index].geometry.location.lng),
+                          child: Card(
+                            child: ListTile(
+                              title: Text(places[index].name),
+                              subtitle: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: <Widget>[
+                                  SizedBox(height: 3.0),
+                                  (places[index].rating != null) ? Row(children: <Widget>[
+                                      RatingBarIndicator(
+                                        rating: places[index].rating,
+                                        itemBuilder: (context, index) => Icon(Icons.star, color:Colors.amber),
+                                        itemCount: 5,
+                                        itemSize: 12.0,
+                                        direction: Axis.horizontal,
+                                      ),
+                                    ],
+                                  ) : Row(),
+                                  SizedBox(height: 3.0),
+                                  Consumer<double>(
+                                    builder: (context, meters, widget) {
+                                      return (meters != null)
+                                          ?Text('${places[index].vicinity} \u00b7 ${(meters/1609).round()}')
+                                          : Container();
+                                    },
+                                  )
+                                ],
+                              ),
+                              trailing: IconButton(
+                                icon: Icon(Icons.directions),
+                                color: Theme.of(context).primaryColor,
+                                onPressed: () {
+                                  _launchMapsUrl(places[index].geometry.location.lat, places[index].geometry.location.lng);
+                                },
+                              ),
+                            ),
                           ),
                         );
                       }),
@@ -146,4 +189,14 @@ class _HomePageState extends State<HomePage> {
       ),
     );
   }
+
+  void _launchMapsUrl(double lat, double lng) async {
+    final url = 'https://www.google.com/maps/search/?api=1&query=$lat,$lng';
+    if (await canLaunch(url)){
+      await launch(url);
+    } else {
+      throw "Could not launch $url";
+    }
+  }
+
 }
